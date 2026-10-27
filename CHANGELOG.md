@@ -7,6 +7,29 @@ dates are when the change was made.
 
 Nothing yet.
 
+## [0.5.1] - 2026-10-27 (Week 1 review)
+
+### Fixed
+- README Week 1 results said Puerto Rico and the Virgin Islands had 1–9 releases a year; together they had
+  0–9, with none in FY2014–FY2016 or FY2021.
+- `src/build_dataset.py`: two comments broken across lines mid-sentence, and a comment that named only the
+  Virgin Islands as missing from the Census county file (Puerto Rico is missing too).
+
+### Changed
+- `src/build_dataset.py` comments: a Layout part in HOW TO READ THIS FILE; why a blank MPI state cell counts
+  as 0 releases (MPI's own total column does the same); why Connecticut's "other counties" population stays
+  blank; long end-of-line comments moved to their own lines. Comments only: the syntax tree matches v0.5.0,
+  and the three Week 1 CSV files are byte-identical.
+- README Data table gives the Census file's size and download date. Week 1 findings add the 15 blank state
+  cells and note that population comes from the Vintage 2024 estimates while the ACS join is pending.
+
+### Notes
+- Week 1 checked against the plan of record: `python src/build_dataset.py` gives 3,673 rows, 648 of 648
+  reconciliation checks pass, and the 4 Connecticut counties are the only FIPS misses; 13 tests pass.
+- Still pending: FSO and contract-lead approval of the problem statement; ACS language data (needs a Census
+  API key); a Connecticut county-to-planning-region crosswalk, which would change Week 2 and Week 4 county
+  counts.
+
 ## [0.5.0] - 2026-10-26 (Week 4: geography)
 
 ### Added

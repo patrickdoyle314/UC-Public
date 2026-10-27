@@ -66,7 +66,7 @@ notebook's code cells → `src/geography.py` (GeoPandas, spatial statistics).
 | Source | File | Notes |
 |---|---|---|
 | [Migration Policy Institute: Released to Sponsors by State and County, FY 2014–2025](https://www.migrationpolicy.org/data-tool/unaccompanied-children-state-county) | `data/raw/mpi/mpi-data-hub_uacsbystate-county-fy2014-fy2025.xlsx` (133,945 bytes, downloaded 2026-10-22) | Tabulation of ACF/ORR data. Counties listed only for years with ≥ 50 releases. First release location only. Includes FY2014, Puerto Rico and the U.S. Virgin Islands. |
-| [Census Bureau Vintage 2024 county estimates by age and sex](https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/asrh/) | `data/raw/census/cc-est2024-agesex-all.csv` | County FIPS codes; July 1, 2024 total and ages 5–17 population. Covers the 50 states and DC only. |
+| [Census Bureau Vintage 2024 county estimates by age and sex](https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/asrh/) | `data/raw/census/cc-est2024-agesex-all.csv` (8,723,627 bytes, downloaded 2026-10-22) | County FIPS codes; July 1, 2024 total and ages 5–17 population. Covers the 50 states and DC only. |
 | Census ACS 5-year (language spoken at home) | — | Pending: needs a free Census API key, which you request yourself at api.census.gov. |
 
 ## Run
@@ -154,10 +154,15 @@ Five findings, FY2015–FY2025:
 Findings for the plan:
 
 - The MPI file **includes FY2014** (53,515 releases); the plan's data table lists it as unavailable.
-- MPI's national totals include Puerto Rico and the U.S. Virgin Islands (1–9 releases a year); both
-  are kept as state-level rows so the totals reconcile.
+- MPI's national totals include Puerto Rico and the U.S. Virgin Islands (together 0–9 releases a year, none
+  in FY2014–FY2016 or FY2021); both are kept as state-level rows so the totals reconcile.
+- 15 state-year cells are blank in MPI's States sheet (Alaska FY2018 and FY2020, Montana FY2019, Vermont
+  FY2017, Puerto Rico in 4 years, the Virgin Islands in 7). They count as 0 releases, as in MPI's own
+  FY 2014–2025 total column; read that way, the states add up to the national total in every year.
 - Census population is one reference year (July 1, 2024) on every row. Puerto Rico and the Virgin Islands
   have no population in this file.
+- The plan says to join ACS county data. Total and school-age population come from the Vintage 2024
+  estimates above, which need no API key; the ACS join (language spoken at home) is pending (see Data).
 
 ## Exchange with adjacent projects
 
