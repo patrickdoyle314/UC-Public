@@ -201,6 +201,11 @@ evenly over this many places": higher means more spread out.
    [`results/figures/week3_lorenz.png`](results/figures/week3_lorenz.png)). Releases are concentrated, and the
    concentration has eased slowly for both states and counties. The Gini coefficient is 0.61–0.69 for states
    and 0.39–0.61 among listed counties.
+   - **States:** the largest fifth of states received 64%–76% of children each year, and the smaller half 7%–10%.
+   - **Counties:** the county curves and Gini cover listed counties only, and the number listed swings with
+     volume. They look flattest in FY2020 and FY2025, when only 73 and 109 counties reached 50 releases and
+     the listed set held only larger counties. So compare county curves across years with care, and use the
+     effective numbers above for trends.
 2. **How counties are counted.** Counties under 50 releases are not published, and they are never split or
    estimated. Each of them had at most 49 releases, which limits how much they can add, so county HHI is a
    narrow range (`hhi_low` to `hhi`). The effective numbers above are the low end of that range. The ten largest
