@@ -7,6 +7,52 @@ dates are when the change was made.
 
 Nothing yet.
 
+## [0.6.0] - 2026-10-31 (Week 7: app and tests; spec for Weeks 5–6)
+
+Work is now split with the project owner: the owner writes the Week 5 share model, the Week 6 scenario engine
+and the written summary; this release adds what those plug into. Week 5 code is untouched.
+
+### Added
+- `app/streamlit_app.py`, `app/terms.py`: Streamlit + Plotly app (BRD FR-16 to FR-20).
+  - Scenario selector; state and county maps; sortable tables with expected value and 80% range for every
+    state, listed county and "other counties" figure; backtest coverage of the ranges.
+  - History tab: published counts by year on maps, trends, years listed per county.
+  - A plain-language glossary, and help text on every column.
+  - The Scenario tab says the tables are not built yet until the engine's files exist.
+- `src/scenario_contract.py`: the format of the scenario engine's three files and the checks run on them.
+  Format, ranges, sums, and the 50-release rule: a county appears by itself only with 50+ expected releases.
+  The app shows nothing from files that fail.
+- `docs/spec_week5_week6.md`: what the owner's share model and scenario engine must produce. It points to
+  ORR's age data (children in care, XLSX) for the school-age measure.
+- `tests/test_acceptance.py`: 8 acceptance tests for Weeks 5–6, mapped to FR-12 to FR-15, FR-19, NFR-03 and
+  NFR-10. They skip until the owner's outputs exist.
+- `tests/test_app.py`: 13 tests.
+  - The checks catch each kind of problem.
+  - The app offers three scenarios; choosing one refreshes the tables.
+  - No county under 50 is shown by itself; every column is defined; failing files are not shown.
+  - They run on synthetic files from `tests/fixtures/make_scenario_fixture.py`.
+- `tests/test_build_dataset.py`: 6 unit tests of the reshaping step on made-up counties (NFR-08).
+  - One row per year and place; unpublished cells get no row; FIPS and key are carried.
+  - Other counties = state minus listed, with population left blank when a county is unmatched.
+  - Reconciliation flags counties above their state total.
+- `src/maps_by_year.py`: state and county maps for every fiscal year, FY2015–FY2025, on a shared scale (FR-06).
+  - `results/figures/week7_state_maps_by_year.png`
+  - `results/figures/week7_county_maps_by_year.png`
+- README sections:
+  - Fiscal-year alignment for every source (FR-04).
+  - Week 7 app.
+  - Limitations (NFR-09).
+  - How this was built: which parts are AI-assisted and which the owner writes.
+- `requirements.txt`: streamlit, plotly.
+
+### Changed
+- `src/build_dataset.py`: the reshaping step moved out of `main()` into `reshape()`, which reads and writes no
+  files, so it can be unit-tested. The three Week 1 CSV files are byte-identical.
+
+### Notes
+- 32 tests pass; 8 acceptance tests skip until Weeks 5–6 are built.
+- New code uses shorter comments than the Weeks 1–4 HOW TO READ blocks.
+
 ## [0.5.1] - 2026-10-27 (Week 1 review)
 
 ### Fixed

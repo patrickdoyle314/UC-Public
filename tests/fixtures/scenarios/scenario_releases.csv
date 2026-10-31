@@ -1,0 +1,71 @@
+scenario,geo_level,state,state_name,county_key,county_fips,county_name,measure,expected,lower_80,upper_80
+low,state,TX,Texas,,,,releases,8000,6400,10000
+low,county,TX,Texas,harris|TX,48201,"Harris County, TX",releases,2400,1920,3000
+low,county,TX,Texas,dallas|TX,48113,"Dallas County, TX",releases,1200,960,1500
+low,other_counties,TX,Texas,,,"Other counties, TX",releases,4400,3520,5500
+low,state,TX,Texas,,,,school_age,4000,3200,5000
+low,county,TX,Texas,harris|TX,48201,"Harris County, TX",school_age,1200,960,1500
+low,county,TX,Texas,dallas|TX,48113,"Dallas County, TX",school_age,600,480,750
+low,other_counties,TX,Texas,,,"Other counties, TX",school_age,2200,1760,2750
+low,state,CA,California,,,,releases,7000,5600,8750
+low,county,CA,California,los angeles|CA,06037,"Los Angeles County, CA",releases,2800,2240,3500
+low,other_counties,CA,California,,,"Other counties, CA",releases,4200,3360,5250
+low,state,CA,California,,,,school_age,3500,2800,4375
+low,county,CA,California,los angeles|CA,06037,"Los Angeles County, CA",school_age,1400,1120,1750
+low,other_counties,CA,California,,,"Other counties, CA",school_age,2100,1680,2625
+low,state,NY,New York,,,,releases,5000,4000,6250
+low,county,NY,New York,queens|NY,36081,"Queens County, NY",releases,1000,800,1250
+low,county,NY,New York,suffolk|NY,36103,"Suffolk County, NY",releases,750,600,938
+low,other_counties,NY,New York,,,"Other counties, NY",releases,3250,2600,4062
+low,state,NY,New York,,,,school_age,2500,2000,3125
+low,county,NY,New York,queens|NY,36081,"Queens County, NY",school_age,500,400,625
+low,county,NY,New York,suffolk|NY,36103,"Suffolk County, NY",school_age,375,300,469
+low,other_counties,NY,New York,,,"Other counties, NY",school_age,1625,1300,2031
+median,state,TX,Texas,,,,releases,24000,19200,30000
+median,county,TX,Texas,harris|TX,48201,"Harris County, TX",releases,7200,5760,9000
+median,county,TX,Texas,dallas|TX,48113,"Dallas County, TX",releases,3600,2880,4500
+median,other_counties,TX,Texas,,,"Other counties, TX",releases,13200,10560,16500
+median,state,TX,Texas,,,,school_age,12000,9600,15000
+median,county,TX,Texas,harris|TX,48201,"Harris County, TX",school_age,3600,2880,4500
+median,county,TX,Texas,dallas|TX,48113,"Dallas County, TX",school_age,1800,1440,2250
+median,other_counties,TX,Texas,,,"Other counties, TX",school_age,6600,5280,8250
+median,state,CA,California,,,,releases,21000,16800,26250
+median,county,CA,California,los angeles|CA,06037,"Los Angeles County, CA",releases,8400,6720,10500
+median,other_counties,CA,California,,,"Other counties, CA",releases,12600,10080,15750
+median,state,CA,California,,,,school_age,10500,8400,13125
+median,county,CA,California,los angeles|CA,06037,"Los Angeles County, CA",school_age,4200,3360,5250
+median,other_counties,CA,California,,,"Other counties, CA",school_age,6300,5040,7875
+median,state,NY,New York,,,,releases,15000,12000,18750
+median,county,NY,New York,queens|NY,36081,"Queens County, NY",releases,3000,2400,3750
+median,county,NY,New York,suffolk|NY,36103,"Suffolk County, NY",releases,2250,1800,2812
+median,county,NY,New York,westchester|NY,36119,"Westchester County, NY",releases,120,96,150
+median,other_counties,NY,New York,,,"Other counties, NY",releases,9630,7704,12038
+median,state,NY,New York,,,,school_age,7500,6000,9375
+median,county,NY,New York,queens|NY,36081,"Queens County, NY",school_age,1500,1200,1875
+median,county,NY,New York,suffolk|NY,36103,"Suffolk County, NY",school_age,1125,900,1406
+median,county,NY,New York,westchester|NY,36119,"Westchester County, NY",school_age,60,48,75
+median,other_counties,NY,New York,,,"Other counties, NY",school_age,4815,3852,6019
+high,state,TX,Texas,,,,releases,48000,38400,60000
+high,county,TX,Texas,harris|TX,48201,"Harris County, TX",releases,14400,11520,18000
+high,county,TX,Texas,dallas|TX,48113,"Dallas County, TX",releases,7200,5760,9000
+high,other_counties,TX,Texas,,,"Other counties, TX",releases,26400,21120,33000
+high,state,TX,Texas,,,,school_age,24000,19200,30000
+high,county,TX,Texas,harris|TX,48201,"Harris County, TX",school_age,7200,5760,9000
+high,county,TX,Texas,dallas|TX,48113,"Dallas County, TX",school_age,3600,2880,4500
+high,other_counties,TX,Texas,,,"Other counties, TX",school_age,13200,10560,16500
+high,state,CA,California,,,,releases,42000,33600,52500
+high,county,CA,California,los angeles|CA,06037,"Los Angeles County, CA",releases,16800,13440,21000
+high,other_counties,CA,California,,,"Other counties, CA",releases,25200,20160,31500
+high,state,CA,California,,,,school_age,21000,16800,26250
+high,county,CA,California,los angeles|CA,06037,"Los Angeles County, CA",school_age,8400,6720,10500
+high,other_counties,CA,California,,,"Other counties, CA",school_age,12600,10080,15750
+high,state,NY,New York,,,,releases,30000,24000,37500
+high,county,NY,New York,queens|NY,36081,"Queens County, NY",releases,6000,4800,7500
+high,county,NY,New York,suffolk|NY,36103,"Suffolk County, NY",releases,4500,3600,5625
+high,county,NY,New York,westchester|NY,36119,"Westchester County, NY",releases,240,192,300
+high,other_counties,NY,New York,,,"Other counties, NY",releases,19260,15408,24075
+high,state,NY,New York,,,,school_age,15000,12000,18750
+high,county,NY,New York,queens|NY,36081,"Queens County, NY",school_age,3000,2400,3750
+high,county,NY,New York,suffolk|NY,36103,"Suffolk County, NY",school_age,2250,1800,2812
+high,county,NY,New York,westchester|NY,36119,"Westchester County, NY",school_age,120,96,150
+high,other_counties,NY,New York,,,"Other counties, NY",school_age,9630,7704,12038

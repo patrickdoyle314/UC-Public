@@ -27,8 +27,8 @@ Usage  : python src/build_dataset.py
 # of a state is one "other counties" row and is never split or estimated.
 #
 # Layout: settings and lookup tables at the top; then the readers (norm and county_key clean county
-# names, load_census and load_mpi read the two source files); then main(), which matches counties to
-# FIPS codes, builds the rows, checks that the totals add up and writes three CSV files.
+# names, load_census and load_mpi read the two source files); then reshape(), which matches counties to
+# FIPS codes, builds the rows and checks that the totals add up; then main(), which writes three CSV files.
 #
 # Python ideas: openpyxl (reading Excel), regular expressions for cleaning names, defaultdict,
 # dict comprehensions, csv.DictWriter, reconciliation checks that prove the totals add up.
@@ -123,14 +123,9 @@ def load_mpi():
     return states, counties
 
 
-# Steps: match MPI counties to Census FIPS codes, build one row per fiscal year and place, check that
-# the numbers add up, and write three CSV files.
-def main():
-    census, census_states = load_census()
-    mpi_states, mpi_counties = load_mpi()
-    us = mpi_states.pop("United States")
-    OUT.mkdir(parents=True, exist_ok=True)
-
+# The reshaping step: match MPI counties to Census FIPS codes, build one row per fiscal year and place,
+# and check that the numbers add up. It reads and writes no files, so tests can run it on made-up counties.
+def reshape(us, mpi_states, mpi_counties, census, census_states):
     # Match each MPI county to its Census FIPS code by cleaned name. Names that don't match are written
     # out for review (for example Connecticut, whose newer Census geography uses planning regions).
     fips, unmatched = {}, []
@@ -184,6 +179,16 @@ def main():
                               listed_counties=len(listed), ok=other >= 0))
         recon.append(dict(fiscal_year=fy, state="US", state_total=us[fy], listed_county_sum=state_sum,
                           other_counties=(us[fy] or 0) - state_sum, listed_counties="", ok=(us[fy] or 0) == state_sum))
+    return rows, recon, unmatched, fips
+
+
+# Read both sources, reshape them, and write three CSV files.
+def main():
+    census, census_states = load_census()
+    mpi_states, mpi_counties = load_mpi()
+    us = mpi_states.pop("United States")
+    rows, recon, unmatched, fips = reshape(us, mpi_states, mpi_counties, census, census_states)
+    OUT.mkdir(parents=True, exist_ok=True)
 
     with open(OUT / "releases_by_fy_geo.csv", "w", newline="", encoding="utf-8") as f:
         # DictWriter writes one dict per row; r.get(c, "") leaves a blank where a row has no value

@@ -1,0 +1,44 @@
+{
+  "source": "test fixture",
+  "base_fiscal_year": 2025,
+  "share_model": "synthetic numbers for tests",
+  "draws": 0,
+  "seed": 0,
+  "range": [
+    0.1,
+    0.9
+  ],
+  "scenarios": [
+    {
+      "id": "low",
+      "label": "Low",
+      "national_releases": 20000,
+      "source_fiscal_year": 2020
+    },
+    {
+      "id": "median",
+      "label": "Median",
+      "national_releases": 60000,
+      "source_fiscal_year": 2016
+    },
+    {
+      "id": "high",
+      "label": "High",
+      "national_releases": 120000,
+      "source_fiscal_year": 2022
+    }
+  ],
+  "measures": [
+    {
+      "id": "releases",
+      "label": "Children released to sponsors",
+      "definition": "Children expected to be released to sponsors in the place in one fiscal year."
+    },
+    {
+      "id": "school_age",
+      "label": "School-age children",
+      "definition": "Synthetic: half of the children released."
+    }
+  ],
+  "age_mix_source": "none (synthetic)"
+}

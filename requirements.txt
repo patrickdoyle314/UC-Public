@@ -26,3 +26,7 @@ python-docx>=1.1
 nbformat>=5.9
 nbclient>=0.10
 ipykernel>=6.29
+
+# Week 7 app: Streamlit (pages and widgets), Plotly (interactive maps and charts)
+streamlit>=1.40
+plotly>=5.24

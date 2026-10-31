@@ -7,10 +7,14 @@ FY2015–FY2025, and what a future rise in national volume would mean for local 
 - Plan of record: [`docs/portfolio_plan_2026-10-20.docx`](docs/portfolio_plan_2026-10-20.docx)
 - Problem statement (Week 1, draft for approval): [`docs/problem_statement.md`](docs/problem_statement.md)
 - Week 4 findings memo (concentration, stability, geography): [`docs/week4_findings_memo.md`](docs/week4_findings_memo.md)
+- Spec for the Week 5 share model and Week 6 scenario engine: [`docs/spec_week5_week6.md`](docs/spec_week5_week6.md)
 - Changes: [`CHANGELOG.md`](CHANGELOG.md)
 
-**Status:** Weeks 1–4 done (data assembly, exploratory analysis, concentration and persistence, geography), pending
-FSO and contract-lead approval. Next: Week 5 (Bayesian share model).
+**Status:** Weeks 1–4 done (data assembly, exploratory analysis, concentration and persistence, geography).
+Week 7 built: the Streamlit app, its tests, per-year maps and a reshaping unit test. The app's History tab
+works now. Its Scenario tab waits for the Week 5 share model and Week 6 scenario engine, which the project
+owner is writing to [`docs/spec_week5_week6.md`](docs/spec_week5_week6.md). FSO and contract-lead sign-off
+is still pending.
 This repository is **public** since October 25, 2026, released by the project owner. The alignment notes
 with the MP project stay local and unpublished.
 
@@ -37,14 +41,17 @@ These apply to every file, chart and write-up in this project:
 ```
 UC-Placement/
   README.md, CHANGELOG.md
-  docs/                 plan of record (.docx, kept local), problem statement, Week 4 findings memo
+  docs/                 plan of record (.docx, kept local), problem statement, Week 4 memo, Week 5-6 spec
   src/build_dataset.py  Week 1: reshape MPI data, add other-counties rows, join Census
   src/measure.py, src/share_baseline.py, src/run_sql.py   Week 3 measures, tiers, share baselines, SQL runner
   src/geography.py, src/build_week4_memo.py              Week 4: Moran's I, LISA, school-age comparison; memo
+  src/maps_by_year.py   Week 7: state and county maps for every fiscal year
+  src/scenario_contract.py  format and guardrail checks for the scenario engine's files
+  app/                  Week 7: Streamlit app (streamlit_app.py) and its glossary (terms.py)
   notebooks/            Week 2 exploratory notebook and its builder
   sql/                  SQL statements (DuckDB over parquet)
   results/              aggregate outputs
-  tests/                pytest checks
+  tests/                pytest checks; tests/fixtures/ holds synthetic scenario files for the app tests
   data/raw/             downloaded sources (not committed; see Data)
   data/processed/       generated tables (not committed)
   exchange/             contract and export for adjacent projects (see Exchange)
@@ -53,7 +60,7 @@ UC-Placement/
 
 ## Reading the code
 
-Every Python and SQL file opens with a **HOW TO READ THIS FILE** block: what the file does for the project
+Every Python and SQL file from Weeks 1–4 opens with a **HOW TO READ THIS FILE** block: what the file does for the project
 (business purpose), how it is laid out, and the Python ideas it uses. Comments through the code explain *why*
 each step exists (for example, why "other counties" are never split) and point out Python, pandas and SQL
 techniques where they first appear. A suggested reading order for learning Python: `src/build_dataset.py` →
@@ -68,6 +75,19 @@ notebook's code cells → `src/geography.py` (GeoPandas, spatial statistics).
 | [Migration Policy Institute: Released to Sponsors by State and County, FY 2014–2025](https://www.migrationpolicy.org/data-tool/unaccompanied-children-state-county) | `data/raw/mpi/mpi-data-hub_uacsbystate-county-fy2014-fy2025.xlsx` (133,945 bytes, downloaded 2026-10-22) | Tabulation of ACF/ORR data. Counties listed only for years with ≥ 50 releases. First release location only. Includes FY2014, Puerto Rico and the U.S. Virgin Islands. |
 | [Census Bureau Vintage 2024 county estimates by age and sex](https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/asrh/) | `data/raw/census/cc-est2024-agesex-all.csv` (8,723,627 bytes, downloaded 2026-10-22) | County FIPS codes; July 1, 2024 total and ages 5–17 population. Covers the 50 states and DC only. |
 | Census ACS 5-year (language spoken at home) | — | Pending: needs a free Census API key, which you request yourself at api.census.gov. |
+| [Census 2023 cartographic boundary files](https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html) (1:20,000,000) | `data/raw/geo/cb_2023_us_state_20m.zip`, `cb_2023_us_county_20m.zip` | State and county shapes for the maps and the app. |
+
+### Fiscal-year alignment
+
+Every figure is placed on the federal fiscal year (October 1 – September 30):
+
+| Source | Its own period | How it is aligned |
+|---|---|---|
+| MPI release counts | Federal fiscal year | Used as published. FY2015–FY2025 are analyzed; FY2014 stays in the Week 1 table only. |
+| Census Vintage 2024 estimates | July 1, 2024 (inside FY2024) | One fixed reference population for every fiscal year, not re-estimated year by year. |
+| Census ACS 5-year (pending) | A five-calendar-year period | To be used the same way: a fixed reference, labeled with its period. |
+| ORR age data (Week 6) | Federal fiscal year | The engine uses the fiscal year it names in `results/scenarios.json`. |
+| CBP encounters (optional, not used) | Monthly | Would be summed October through September. |
 
 ## Run
 
@@ -77,6 +97,8 @@ python src/build_dataset.py          # Week 1 table + reconciliation
 python notebooks/build_week2_eda.py  # Week 2 notebook: builds, runs and saves it with its charts
 python src/geography.py              # Week 4: Moran's I, LISA, school-age comparison (after src/measure.py)
 python src/build_week4_memo.py       # Week 4 findings memo, from the results tables
+python src/maps_by_year.py           # Week 7: state and county maps for every fiscal year
+streamlit run app/streamlit_app.py   # Week 7: the scenario app, in your browser
 python exchange/export_exchange.py   # aggregates for adjacent projects
 python alignment/align_mp.py         # optional, local only: coincidence checks with MP
 ```
@@ -92,7 +114,10 @@ python alignment/align_mp.py         # optional, local only: coincidence checks 
 | `docs/MODEL_CARD_share_model.md` | Model card: data, baselines and scores, the planned Bayesian model, limitations |
 | `sql/state_ranks.sql` | SQL with CTEs and window functions (`RANK`, `LAG`, running `SUM`) over the parquet table |
 | `src/run_sql.py` | Runs a SQL file with DuckDB, saves the result in `results/` |
-| `tests/` | pytest: metric checks, reconciliation, SQL matches pandas, tiers, Moran's I, clusters, school-age ratio |
+| `src/maps_by_year.py` | Small-multiple state and county maps, one panel per fiscal year, on a shared scale |
+| `src/scenario_contract.py` | What the scenario engine's files must contain, and the checks the app runs before showing them |
+| `app/streamlit_app.py` | Streamlit + Plotly app: scenario selector, state and county maps, tables with 80% ranges, history, definitions |
+| `tests/` | pytest: metric checks, the reshaping step on made-up counties, reconciliation, SQL matches pandas, tiers, Moran's I, clusters, school-age ratio, the app (Streamlit's AppTest), and acceptance tests for Weeks 5–6 that skip until those outputs exist |
 | `results/` | Outputs (aggregate, from public MPI data) |
 
 ```bash
@@ -101,8 +126,41 @@ python src/share_baseline.py
 python src/run_sql.py
 python src/geography.py
 python src/build_week4_memo.py
+python src/maps_by_year.py
 python -m pytest
 ```
+
+## Week 7: the scenario app
+
+`streamlit run app/streamlit_app.py` opens the app in a browser. A planner picks a national volume scenario (Low,
+Median or High, each one a real year's national total from FY2015–FY2025) and a state. The app then shows:
+
+- **Scenario:** state and county maps of expected releases or school-age children, and sortable tables with the
+  expected value and the 80% range for every state, listed county and state "other counties" figure. It also
+  shows how often the ranges held the actual figure in backtests.
+- **History:** published counts for any fiscal year on state and county maps, the national or state trend, and
+  how many of the 11 years each county was listed (steady or changing need).
+- **Definitions:** a plain-language glossary. Every table column also has its own help text.
+- **About and guardrails:** purpose, guardrails, limits, and how the app was built.
+
+Guardrails are enforced in code, not only stated:
+
+- The app runs `src/scenario_contract.py` on the scenario files before drawing anything. If a check fails, for
+  example a county with fewer than 50 expected releases shown by itself, the app shows the problem instead of
+  the numbers.
+- The History tab shades a county only in years it was published (50+ releases).
+
+The tests run the app on synthetic scenario files in `tests/fixtures/scenarios/`, which are made up and describe
+nothing real. They check that:
+
+- choosing a scenario refreshes every table;
+- no county under 50 is shown by itself;
+- every column is defined;
+- files that fail the checks are not shown.
+
+Per-year maps for FY2015–FY2025 are also saved as images:
+[`results/figures/week7_state_maps_by_year.png`](results/figures/week7_state_maps_by_year.png) and
+[`results/figures/week7_county_maps_by_year.png`](results/figures/week7_county_maps_by_year.png).
 
 ## Week 4 results: geography
 
@@ -163,6 +221,36 @@ Findings for the plan:
   have no population in this file.
 - The plan says to join ACS county data. Total and school-age population come from the Vintage 2024
   estimates above, which need no API key; the ACS join (language spoken at home) is pending (see Data).
+
+## Limitations
+
+- **First release location only.** A child is counted in the county where they were first released to a
+  sponsor; later moves are not tracked.
+- **Small counties are not published.** Counties with fewer than 50 releases in a year appear only inside their
+  state's "other counties" figure, and nothing is estimated for them. Every county-level result therefore covers
+  listed counties only, which leans toward large counties. A methods note on this is an optional item, not yet
+  written.
+- **One reference population.** Every year uses the July 1, 2024 Census estimates. Puerto Rico and the Virgin
+  Islands have none in that file.
+- **Connecticut.** Its four listed counties have no current Census FIPS code (the Census now reports Connecticut
+  by planning region), so they have no population and are not drawn on maps. They do appear in tables.
+- **Scenarios are not forecasts.** Low, Median and High are past national totals. The scenario engine assumes
+  the historical pattern of where children are released holds at those volumes; if it shifts, the ranges will be
+  too narrow.
+- **Service needs are approximate.** School-age figures will use ORR's national age mix for children in its care,
+  which may differ from the children released to a given place.
+- **Language spoken at home** (ACS) is not yet included.
+- **Source revisions.** MPI and ORR can revise published figures. Each downloaded file is listed above with its
+  date.
+
+## How this was built
+
+The project owner set the question, scope, guardrails and tools, and reviewed the results. Most of the code for
+Weeks 1–4 and Week 7 was written with AI assistance (Claude, by Anthropic): data assembly, measures, geography,
+maps, the app and the tests. Those commits carry a `Co-Authored-By: Claude` line. The project owner writes the
+Week 5 share model, the Week 6 scenario engine and the written summary. AI assistance on those parts is limited
+to the spec and acceptance tests ([`docs/spec_week5_week6.md`](docs/spec_week5_week6.md),
+`tests/test_acceptance.py`) and code review.
 
 ## Exchange with adjacent projects
 
