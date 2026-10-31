@@ -7,6 +7,54 @@ dates are when the change was made.
 
 Nothing yet.
 
+## [0.6.2] - 2026-10-31 (Week 3 review)
+
+Week 3 checked on its own against Weeks 1–2 and the BRD (FR-07, FR-08, NFR-03, NFR-07, NFR-08). Week 4 was not
+reviewed. Its memo's county bullet was rewritten because it depended on the Week 3 error fixed below.
+
+### Fixed
+- **County concentration counted every unlisted county in the nation as one place.**
+  - That one "place" held 11%–37% of releases, so it drove the county HHI, effective number and top-10 share.
+  - The old figures were 7–44 effective places, with the lump among the "top 10". They measured how many
+    children fell below the threshold, not how concentrated counties are.
+  - Counties are now counted one by one, and no unlisted county is split or estimated. Each unlisted county had
+    at most 49 releases, so county HHI is a narrow range: `hhi_low` to `hhi`.
+  - Corrected figures: 60–132 effective counties; the top 10 counties took 19%–33%.
+  - Gini is now among the listed counties.
+  - State figures are unchanged.
+- FR-07 asks for Lorenz curves. `lorenz()` existed but nothing used it. Now written:
+  - `results/lorenz_by_year.csv`
+  - `results/figures/week3_lorenz.png`
+- FR-08 asks for a transition matrix for every consecutive year pair. Only the pooled matrix was written. Added
+  `results/tier_transitions_by_year.csv`.
+- The README's main Run steps skipped Week 3. Week 4 needs Week 3's parquet table, so a clean run in that order
+  failed. The Week 3 steps are now included.
+
+### Added
+- `results/persistence_county_ranks.csv`: Spearman and Kendall rank correlations for counties published in both
+  years of each pair (FR-08).
+- `concentration_by_year.csv` columns: `hhi_low`, `effective_n_high`, `unlisted_share`. HHI is now rounded to
+  5 decimals.
+- README "Week 3 results": every year's figures, with how to read them.
+- `tests/test_week3.py`: 10 checks.
+  - The county HHI range holds the true value however the unlisted counties are split.
+  - The unlisted group never counts as one county.
+  - One transition matrix per year pair.
+  - Every year and year pair is present in the results (FR-07, FR-08).
+
+### Changed
+- `src/build_week4_memo.py` and `docs/week4_findings_memo.md`: the county concentration bullet. Nothing else in
+  Week 4 changed; its other results are byte-identical.
+
+### Notes
+- All 23 Python files compile, with warnings treated as errors.
+- The whole pipeline was run in a fresh copy of this commit, with only the raw downloads added:
+  - every step in the README's Run order exits cleanly;
+  - the app starts and answers its health check;
+  - 45 tests pass and 8 skip;
+  - all 36 regenerated tables, the charts, the memo and the notebook outputs are byte-identical to the
+    committed ones.
+
 ## [0.6.1] - 2026-10-31 (Week 2 review)
 
 Week 2 checked on its own against Week 1 and the BRD, as v0.5.1 did for Week 1. The BRD items covered are

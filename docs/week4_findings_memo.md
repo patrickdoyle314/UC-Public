@@ -1,6 +1,6 @@
 # Week 4 findings memo: concentration, stability and geography
 
-*Where Unaccompanied Children Are Placed. Unaccompanied children released to sponsors, FY2015–FY2025. Built from the data by `python src/build_week4_memo.py` on October 26, 2026; every number is read from `results/`. Service planning only.*
+*Where Unaccompanied Children Are Placed. Unaccompanied children released to sponsors, FY2015–FY2025. Built from the data by `python src/build_week4_memo.py` on October 31, 2026; every number is read from `results/`. Service planning only.*
 
 **Check-in question:** is the pattern stable enough that last year predicts next year?
 
@@ -17,7 +17,7 @@
 ## 1. Concentration
 
 - **States.** Each year releases were as concentrated as if spread evenly over 14–17 states (the effective number, 1 / HHI). The ten largest states took 64%–75% of releases. Concentration has eased slowly: the top-ten share was 70%–75% in FY2015–FY2019 and 64%–70% in FY2021–FY2025.
-- **Counties.** In the high-volume years FY2021–FY2024 the effective number of places was 32–44; in the low-volume years FY2020 and FY2025 it fell to 7 and 8. Part of this is the threshold: when fewer counties reach 50 releases, more children fall in the unlisted group, which counts as a single place.
+- **Counties.** Counted county by county, releases were as concentrated as if spread evenly over 60–132 counties each year, and the ten largest counties took 19%–33%. This has eased too: 60–82 equal-sized counties in FY2015–FY2019, 88–132 in FY2021–FY2025. Counties under 50 releases are not published and never estimated; each had at most 49, so these figures are lower bounds on how spread out releases were (Week 3).
 
 ## 2. Stability
 

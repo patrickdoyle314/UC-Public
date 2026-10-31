@@ -95,7 +95,7 @@ def main():
     lc, oc = sa[sa.group == "listed counties"], sa[sa.group.str.startswith("other")]
     always_rel, always_pop = always.releases.sum() / us_releases, always.pop_5_17.sum() / us_pop
     early, late = st.top10_share.loc[2015:2019], st.top10_share.loc[2021:2025]  # .loc slices by year label
-    surge = co.effective_n.loc[2021:2024]
+    early_co, late_co = co.effective_n.loc[2015:2019], co.effective_n.loc[2021:2025]
     all_sig = bool((my.p_sim < 0.05).all())  # claim "significant every year" only if the data says so
     by_ratio = lc.set_index("fiscal_year").ratio.sort_values()
 
@@ -146,11 +146,12 @@ def main():
         f"{st.top10_share.min():.0%}–{st.top10_share.max():.0%} of releases. Concentration has eased slowly: the "
         f"top-ten share was {early.min():.0%}–{early.max():.0%} in FY2015–FY2019 and {late.min():.0%}–{late.max():.0%} "
         f"in FY2021–FY2025.",
-        f"- **Counties.** In the high-volume years FY2021–FY2024 the effective number of places was "
-        f"{surge.min():.0f}–{surge.max():.0f}; in the low-volume years FY2020 "
-        f"and FY2025 it fell to {co.effective_n.loc[2020]:.0f} and {co.effective_n.loc[2025]:.0f}. Part of this is the "
-        f"threshold: when fewer counties reach 50 releases, more children fall in the unlisted group, which counts "
-        f"as a single place.",
+        f"- **Counties.** Counted county by county, releases were as concentrated as if spread evenly over "
+        f"{co.effective_n.min():.0f}–{co.effective_n.max():.0f} counties each year, and the ten largest counties took "
+        f"{co.top10_share.min():.0%}–{co.top10_share.max():.0%}. This has eased too: {early_co.min():.0f}–"
+        f"{early_co.max():.0f} equal-sized counties in FY2015–FY2019, {late_co.min():.0f}–{late_co.max():.0f} in "
+        f"FY2021–FY2025. Counties under 50 releases are not published and never estimated; each had at most 49, so "
+        f"these figures are lower bounds on how spread out releases were (Week 3).",
         "",
         "## 2. Stability",
         "",

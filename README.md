@@ -12,7 +12,9 @@ FY2015–FY2025, and what a future rise in national volume would mean for local 
 
 **Status:** Weeks 1–4 done (data assembly, exploratory analysis, concentration and persistence, geography).
 Week 2 was reviewed against Week 1 and the BRD on its own: it now runs on Week 1's table alone and includes
-the per-year maps. Week 7 built: the Streamlit app, its tests and a reshaping unit test. The app's History tab
+the per-year maps. Week 3 was reviewed the same way: county concentration now counts counties one by one
+(it had counted all unlisted counties as one place), and Lorenz curves and per-year transition matrices are
+added. Week 7 built: the Streamlit app, its tests and a reshaping unit test. The app's History tab
 works now. Its Scenario tab waits for the Week 5 share model and Week 6 scenario engine, which the project
 owner is writing to [`docs/spec_week5_week6.md`](docs/spec_week5_week6.md). FSO and contract-lead sign-off
 is still pending.
@@ -95,6 +97,9 @@ Every figure is placed on the federal fiscal year (October 1 – September 30):
 pip install -r requirements.txt   # SciPy, libpysal + esda (spatial statistics), matplotlib and python-docx (reporting)
 python src/build_dataset.py          # Week 1 table + reconciliation
 python notebooks/build_week2_eda.py  # Week 2 notebook and its charts, including maps for every year
+python src/measure.py                # Week 3: concentration, Lorenz curves, persistence, tiers
+python src/share_baseline.py         # Week 3: share baselines and their backtest
+python src/run_sql.py                # Week 3: state ranks in SQL (DuckDB)
 python src/geography.py              # Week 4: Moran's I, LISA, school-age comparison (after src/measure.py)
 python src/build_week4_memo.py       # Week 4 findings memo, from the results tables
 streamlit run app/streamlit_app.py   # Week 7: the scenario app, in your browser
@@ -115,7 +120,7 @@ python alignment/align_mp.py         # optional, local only: coincidence checks 
 | `src/run_sql.py` | Runs a SQL file with DuckDB, saves the result in `results/` |
 | `src/scenario_contract.py` | What the scenario engine's files must contain, and the checks the app runs before showing them |
 | `app/streamlit_app.py` | Streamlit + Plotly app: scenario selector, state and county maps, tables with 80% ranges, history, definitions |
-| `tests/` | pytest: metric checks, the reshaping step on made-up counties, reconciliation, SQL matches pandas, tiers, Moran's I, clusters, school-age ratio, the Week 2 notebook's BRD checks, the app (Streamlit's AppTest), and acceptance tests for Weeks 5–6 that skip until those outputs exist |
+| `tests/` | pytest: metric checks, the reshaping step on made-up counties, reconciliation, SQL matches pandas, tiers, Moran's I, clusters, school-age ratio, the Week 2 notebook's BRD checks, county concentration bounds and Week 3's BRD checks, the app (Streamlit's AppTest), and acceptance tests for Weeks 5–6 that skip until those outputs exist |
 | `results/` | Outputs (aggregate, from public MPI data) |
 
 ```bash
@@ -171,6 +176,41 @@ Full memo with charts and methods: [`docs/week4_findings_memo.md`](docs/week4_fi
    runs from Prince George's County, MD to Suffolk County, NY) received 51% of all FY2015–FY2025 releases.
 4. **Compared with school-age population,** listed counties took 1.4–2.0 times their share each year. The 70
    counties listed every year received 59% of releases and have 31% of the nation's school-age children.
+
+## Week 3 results: concentration and persistence
+
+`src/measure.py` (pandas, NumPy) reads only Week 1's table and writes its tables to `results/` for every fiscal
+year (BRD FR-07, FR-08). The **effective number** (1 / HHI) reads "as concentrated as if releases were spread
+evenly over this many places": higher means more spread out.
+
+| Fiscal year | States: effective number | States: top-10 share | Listed counties | Counties: effective number (at least) | Counties: top-10 share | Unlisted counties' share |
+|---|---|---|---|---|---|---|
+| FY2015 | 14.7 | 72% | 108 | 71 | 29% | 27% |
+| FY2016 | 13.5 | 75% | 156 | 60 | 33% | 18% |
+| FY2017 | 13.6 | 74% | 138 | 64 | 31% | 20% |
+| FY2018 | 14.9 | 70% | 124 | 82 | 26% | 27% |
+| FY2019 | 14.8 | 72% | 226 | 76 | 27% | 15% |
+| FY2020 | 14.5 | 71% | 73 | 76 | 26% | 36% |
+| FY2021 | 15.6 | 70% | 298 | 88 | 24% | 12% |
+| FY2022 | 15.3 | 69% | 338 | 88 | 24% | 11% |
+| FY2023 | 16.4 | 67% | 334 | 107 | 22% | 12% |
+| FY2024 | 17.3 | 64% | 322 | 132 | 19% | 15% |
+| FY2025 | 16.5 | 65% | 109 | 112 | 21% | 35% |
+
+1. **Concentration** (`concentration_by_year.csv`, Lorenz curves in `lorenz_by_year.csv` and
+   [`results/figures/week3_lorenz.png`](results/figures/week3_lorenz.png)). Releases are concentrated, and the
+   concentration has eased slowly for both states and counties. The Gini coefficient is 0.61–0.69 for states
+   and 0.39–0.61 among listed counties.
+2. **How counties are counted.** Counties under 50 releases are not published, and they are never split or
+   estimated. Each of them had at most 49 releases, which limits how much they can add, so county HHI is a
+   narrow range (`hhi_low` to `hhi`). The effective numbers above are the low end of that range. The ten largest
+   counties are always listed, so their share is exact.
+3. **Persistence** (`persistence_state_ranks.csv`, `persistence_county_ranks.csv`). Year-to-year rank
+   correlations of state shares are Spearman 0.985–0.996 and Kendall 0.910–0.962. Among the 73–310 counties
+   published in both years of a pair, they are Spearman 0.877–0.968 and Kendall 0.699–0.857.
+4. **Tiers** (`tier_transitions.csv` pooled; `tier_transitions_by_year.csv` for each pair of years). A county
+   with 1,000+ releases stays 1,000+ the next year 58% of the time; one with 50–199 falls below the threshold 34%
+   of the time.
 
 ## Week 2 results: exploratory analysis
 
