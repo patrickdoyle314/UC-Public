@@ -11,7 +11,8 @@ FY2015–FY2025, and what a future rise in national volume would mean for local 
 - Changes: [`CHANGELOG.md`](CHANGELOG.md)
 
 **Status:** Weeks 1–4 done (data assembly, exploratory analysis, concentration and persistence, geography).
-Week 7 built: the Streamlit app, its tests, per-year maps and a reshaping unit test. The app's History tab
+Week 2 was reviewed against Week 1 and the BRD on its own: it now runs on Week 1's table alone and includes
+the per-year maps. Week 7 built: the Streamlit app, its tests and a reshaping unit test. The app's History tab
 works now. Its Scenario tab waits for the Week 5 share model and Week 6 scenario engine, which the project
 owner is writing to [`docs/spec_week5_week6.md`](docs/spec_week5_week6.md). FSO and contract-lead sign-off
 is still pending.
@@ -45,10 +46,9 @@ UC-Placement/
   src/build_dataset.py  Week 1: reshape MPI data, add other-counties rows, join Census
   src/measure.py, src/share_baseline.py, src/run_sql.py   Week 3 measures, tiers, share baselines, SQL runner
   src/geography.py, src/build_week4_memo.py              Week 4: Moran's I, LISA, school-age comparison; memo
-  src/maps_by_year.py   Week 7: state and county maps for every fiscal year
   src/scenario_contract.py  format and guardrail checks for the scenario engine's files
   app/                  Week 7: Streamlit app (streamlit_app.py) and its glossary (terms.py)
-  notebooks/            Week 2 exploratory notebook and its builder
+  notebooks/            Week 2 exploratory notebook and its builder (needs only Week 1's table)
   sql/                  SQL statements (DuckDB over parquet)
   results/              aggregate outputs
   tests/                pytest checks; tests/fixtures/ holds synthetic scenario files for the app tests
@@ -94,10 +94,9 @@ Every figure is placed on the federal fiscal year (October 1 – September 30):
 ```bash
 pip install -r requirements.txt   # SciPy, libpysal + esda (spatial statistics), matplotlib and python-docx (reporting)
 python src/build_dataset.py          # Week 1 table + reconciliation
-python notebooks/build_week2_eda.py  # Week 2 notebook: builds, runs and saves it with its charts
+python notebooks/build_week2_eda.py  # Week 2 notebook and its charts, including maps for every year
 python src/geography.py              # Week 4: Moran's I, LISA, school-age comparison (after src/measure.py)
 python src/build_week4_memo.py       # Week 4 findings memo, from the results tables
-python src/maps_by_year.py           # Week 7: state and county maps for every fiscal year
 streamlit run app/streamlit_app.py   # Week 7: the scenario app, in your browser
 python exchange/export_exchange.py   # aggregates for adjacent projects
 python alignment/align_mp.py         # optional, local only: coincidence checks with MP
@@ -114,10 +113,9 @@ python alignment/align_mp.py         # optional, local only: coincidence checks 
 | `docs/MODEL_CARD_share_model.md` | Model card: data, baselines and scores, the planned Bayesian model, limitations |
 | `sql/state_ranks.sql` | SQL with CTEs and window functions (`RANK`, `LAG`, running `SUM`) over the parquet table |
 | `src/run_sql.py` | Runs a SQL file with DuckDB, saves the result in `results/` |
-| `src/maps_by_year.py` | Small-multiple state and county maps, one panel per fiscal year, on a shared scale |
 | `src/scenario_contract.py` | What the scenario engine's files must contain, and the checks the app runs before showing them |
 | `app/streamlit_app.py` | Streamlit + Plotly app: scenario selector, state and county maps, tables with 80% ranges, history, definitions |
-| `tests/` | pytest: metric checks, the reshaping step on made-up counties, reconciliation, SQL matches pandas, tiers, Moran's I, clusters, school-age ratio, the app (Streamlit's AppTest), and acceptance tests for Weeks 5–6 that skip until those outputs exist |
+| `tests/` | pytest: metric checks, the reshaping step on made-up counties, reconciliation, SQL matches pandas, tiers, Moran's I, clusters, school-age ratio, the Week 2 notebook's BRD checks, the app (Streamlit's AppTest), and acceptance tests for Weeks 5–6 that skip until those outputs exist |
 | `results/` | Outputs (aggregate, from public MPI data) |
 
 ```bash
@@ -126,7 +124,6 @@ python src/share_baseline.py
 python src/run_sql.py
 python src/geography.py
 python src/build_week4_memo.py
-python src/maps_by_year.py
 python -m pytest
 ```
 
@@ -158,9 +155,7 @@ nothing real. They check that:
 - every column is defined;
 - files that fail the checks are not shown.
 
-Per-year maps for FY2015–FY2025 are also saved as images:
-[`results/figures/week7_state_maps_by_year.png`](results/figures/week7_state_maps_by_year.png) and
-[`results/figures/week7_county_maps_by_year.png`](results/figures/week7_county_maps_by_year.png).
+The same per-year maps are saved as images by the Week 2 notebook (see Week 2 results).
 
 ## Week 4 results: geography
 
@@ -181,12 +176,18 @@ Full memo with charts and methods: [`docs/week4_findings_memo.md`](docs/week4_fi
 
 [`notebooks/week2_eda.ipynb`](notebooks/week2_eda.ipynb), built and run by `notebooks/build_week2_eda.py` (pandas,
 matplotlib, GeoPandas with Census 2023 cartographic boundaries). Charts are also in `results/figures/week2_*.png`.
-Five findings, FY2015–FY2025:
+It reads only Week 1's table and the raw boundary files, so it runs right after `src/build_dataset.py`.
+
+**Review question:** do county rows plus "other counties" match each state total? Yes. The notebook checks
+this again before any finding: all 583 state-years in FY2015–FY2025 match (50 states, DC, Puerto Rico, the
+Virgin Islands), and states add up to the national total in all 11 years.
+
+Five findings, FY2015–FY2025 (BRD FR-05):
 
 1. National releases ranged from 16,864 (FY2020) to 127,512 (FY2022); FY2021–FY2024 hold 62% of all releases, and
    FY2025 fell to 24,259, 76% below FY2024.
 2. The six largest receiving states (TX, CA, FL, NY, MD, NJ) took 53% of releases; Texas's share stayed between
-   11.7% and 14.9%, and year-to-year state rank correlations never fell below 0.98.
+   11.7% and 14.9%, and year-to-year state rank correlations never fell below 0.985 (FY2017 to FY2018).
 3. The 20 largest receiving counties took 34% of releases; Harris County, TX received the most children in 9 of
    11 years, and all 20 were listed (50+ releases) every year.
 4. Listed counties ranged from 73 (FY2020) to 338 (FY2022) and held 63%–89% of releases; the rest are the
@@ -194,6 +195,11 @@ Five findings, FY2015–FY2025:
 5. Per school-age child (ages 5–17, 2024), the highest totals were in Maryland, DC and Virginia (36 per 1,000) and
    the lowest in Hawaii, Vermont and Alaska. 389 of the 393 listed counties are on the county map (4 Connecticut
    counties have no FIPS match; Alaska, Hawaii and Puerto Rico are left off the maps).
+
+State and county maps for every fiscal year, on one shared color scale (BRD FR-06):
+[`results/figures/week2_state_maps_by_year.png`](results/figures/week2_state_maps_by_year.png) and
+[`results/figures/week2_county_maps_by_year.png`](results/figures/week2_county_maps_by_year.png). County panels
+shade only published counts (50+ releases).
 
 ## Week 1 results
 

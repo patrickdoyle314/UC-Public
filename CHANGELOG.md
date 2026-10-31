@@ -7,6 +7,45 @@ dates are when the change was made.
 
 Nothing yet.
 
+## [0.6.1] - 2026-10-31 (Week 2 review)
+
+Week 2 checked on its own against Week 1 and the BRD, as v0.5.1 did for Week 1. The BRD items covered are
+FR-05, FR-06, NFR-03, NFR-04, NFR-12 and the Week 2 review question.
+
+### Fixed
+- `notebooks/build_week2_eda.py` used to read two Week 3 outputs from `src/measure.py`: the parquet copy and the
+  persistence table. A clean install run in the README's order (Week 1, then Week 2) failed.
+  - It now reads Week 1's CSV.
+  - It computes the state rank correlations itself, with the same result as Week 3 (0.985, FY2017 to FY2018).
+- The notebook did not answer the Week 2 review question. Before any finding it now checks that:
+  - listed counties plus "other counties" equal each state total (583 of 583 state-years);
+  - states add up to the national total (11 of 11 years).
+  The notebook stops if either check fails.
+- Chart labels (NFR-12):
+  - The state-share axis said "national releases", but the shares are of the 50 states and DC, as in Weeks 3–4.
+  - The top-20 heatmap now says that a blank cell means under 50 and not published.
+  - The state map defines school-age as ages 5–17.
+- Finding 4's heading said "surge years". It now says "higher-volume years" (NFR-04, neutral language).
+
+### Moved
+- The per-year state and county maps (FR-06) moved into the Week 2 notebook. Before, they were made by
+  `src/maps_by_year.py` (v0.6.0), which needed Week 4 code. The script and the `week7_*` images are removed.
+  - `results/figures/week2_state_maps_by_year.png`
+  - `results/figures/week2_county_maps_by_year.png`
+
+### Added
+- `tests/test_week2.py`: 4 checks on the saved notebook.
+  - Five findings, each with a chart (FR-05).
+  - Maps for every year (FR-06).
+  - The reconciliation check ran and passed.
+  - The builder reads only Week 1's table and the raw boundary files.
+
+### Notes
+- The five finding sentences are unchanged except finding 2: it now gives the correlation to three decimals
+  (0.985; it was "0.98").
+- Three charts are byte-identical; three changed only in their labels.
+- 36 tests pass; 8 acceptance tests skip until Weeks 5–6 are built.
+
 ## [0.6.0] - 2026-10-31 (Week 7: app and tests; spec for Weeks 5–6)
 
 Work is now split with the project owner: the owner writes the Week 5 share model, the Week 6 scenario engine

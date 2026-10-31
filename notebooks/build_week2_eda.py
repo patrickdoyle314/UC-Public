@@ -4,10 +4,13 @@ The notebook is generated here so it stays reproducible: edit the cells below, t
     python notebooks/build_week2_eda.py
 It executes every cell and saves the outputs (charts, finding sentences) inside the notebook, and
 writes each chart to results/figures/week2_*.png. Needs nbformat, nbclient, ipykernel.
+It reads only Week 1's tables and the raw map files, so it runs right after src/build_dataset.py.
 """
 # ===================================================================================================
 # HOW TO READ THIS FILE
-# Business purpose: the Week 2 deliverable is a notebook of five findings, each backed by a chart.
+# Business purpose: the Week 2 deliverable is a notebook of five findings, each backed by a chart
+# (BRD FR-05), with state and county maps for every year (FR-06). It first checks the Week 2 review
+# question on the Week 1 table: do county rows plus "other counties" match each state total?
 # Instead of editing the notebook by hand, this script writes it: every cell is listed below as
 # md(...) (text) or code(...) (Python). The script then runs the notebook and saves it with its outputs,
 # so the findings are always rebuilt from the data and cannot drift from the numbers.
@@ -37,8 +40,9 @@ management), not the communities.
 threshold); all other counties in a state are one "other counties" group and are never split or estimated.
 
 **Data.** Migration Policy Institute tabulation of ACF/ORR data (`data/raw/mpi/`), reshaped in Week 1
-(`data/processed/releases_by_fy_geo.parquet`); Census Bureau Vintage 2024 population and 2023 cartographic
-boundary files (`data/raw/geo/`). Fiscal years run October to September."""),
+into `data/processed/releases_by_fy_geo.csv`; Census Bureau Vintage 2024 population (ages 5–17 = school-age)
+and 2023 cartographic boundary files (`data/raw/geo/`). Fiscal years run October to September. Nothing here
+comes from a later week, so the notebook runs right after `python src/build_dataset.py`."""),
     code("""from pathlib import Path
 import pandas as pd
 import geopandas as gpd
@@ -55,19 +59,34 @@ BLUE, ORANGE, AQUA, GREY = "#2a78d6", "#eb6834", "#1baf7a", "#b8bcc2"
 plt.rcParams.update({"font.family": "Arial", "font.size": 9, "axes.spines.top": False, "axes.spines.right": False,
                      "axes.edgecolor": "#c9c8c3", "axes.grid": True, "grid.color": "#e6e5e1", "axes.axisbelow": True})
 
-df = pd.read_parquet(ROOT / "data/processed/releases_by_fy_geo.parquet")
+# Week 1's table, read as written. dtype keeps FIPS codes as text so leading zeros survive (01001).
+df = pd.read_csv(ROOT / "data/processed/releases_by_fy_geo.csv", dtype={"county_fips": "string"})
 df = df[df["fiscal_year"].isin(FY)].copy()
-# FIPS codes back to 5-digit text: drop a trailing '.0' and restore leading zeros (1001 -> 01001).
-df["county_fips"] = df["county_fips"].astype("string").str.replace(r"\\.0$", "", regex=True).str.zfill(5)
 # Split the table by level once; every finding below reuses these four tables.
 nat = df[df.geo_level == "national"].set_index("fiscal_year")["releases"]
 states = df[(df.geo_level == "state") & ~df.state.isin(["PR", "VI"])]
 counties = df[df.geo_level == "county"]
 other = df[df.geo_level == "other_counties"]
 findings = []
-def save(fig, name):  # tidy the layout, save a PNG for the report, show the chart here
-    fig.tight_layout(); fig.savefig(FIG / f"week2_{name}.png", dpi=200, facecolor="white"); plt.show()
+def save(fig, name, tight=True):  # tidy the layout, save a PNG for the report, show the chart here
+    if tight:
+        fig.tight_layout()
+    fig.savefig(FIG / f"week2_{name}.png", dpi=200, facecolor="white"); plt.show()
 print(f"{len(df):,} rows; FY{FY[0]}-FY{FY[-1]}; {counties.county_key.nunique()} counties listed at least once")"""),
+
+    md("""## Before the findings: does the Week 1 table reconcile?
+
+The Week 2 review question: do county rows plus "other counties" match each state total? It is checked
+again here, on the table this notebook uses, for the 50 states, DC, Puerto Rico and the Virgin Islands in
+every year. The notebook stops if any state-year does not match."""),
+    code("""all_states = df[df.geo_level == "state"].set_index(["fiscal_year", "state"])["releases"]
+parts = df[df.geo_level.isin(["county", "other_counties"])].groupby(["fiscal_year", "state"])["releases"].sum()
+gap = all_states.sub(parts, fill_value=0)  # state total minus (listed counties + other counties)
+national_gap = nat - all_states.groupby("fiscal_year").sum()
+assert (gap == 0).all() and (national_gap == 0).all() and (other.releases >= 0).all(), \\
+    "The Week 1 table does not reconcile: rerun python src/build_dataset.py"
+print(f"{(gap == 0).sum()} of {len(gap)} state-years: listed counties + other counties = the state total. "
+      f"States add up to the national total in all {len(national_gap)} years.")"""),
 
     # Each finding is a heading cell plus a code cell that draws the chart, saves it, and writes the finding
     # sentence from the data. The comments inside the code cells show up in the notebook too.
@@ -100,13 +119,13 @@ for s, c in zip(top, colors):
     ax.annotate(f"{s} {share[s].iloc[-1]:.1%}", (share.index[-1], share[s].iloc[-1]), xytext=(6, 0),
                 textcoords="offset points", va="center", fontsize=8)
 ax.set_xticks(FY, [f"FY{str(y)[2:]}" for y in FY]); ax.yaxis.set_major_formatter(mtick.PercentFormatter(1, 0))
-ax.set_ylabel("Share of national releases"); ax.set_xlim(FY[0] - 0.3, FY[-1] + 1.4)
+ax.set_ylabel("Share of releases (50 states + DC)"); ax.set_xlim(FY[0] - 0.3, FY[-1] + 1.4)
 save(fig, "top_state_shares")
-pers = pd.read_csv(ROOT / "results/persistence_state_ranks.csv")
-rho_col = [c for c in pers.columns if "spearman" in c.lower()][0]  # find the Spearman column by name instead of hard-coding it
+# Spearman rank correlation of state shares, each year against the next: 1 means the same order both years.
+rho = pd.Series({b: share.loc[a].corr(share.loc[b], method="spearman") for a, b in zip(FY[:-1], FY[1:])})
 f = (f"The six largest receiving states ({', '.join(top)}) took {tot[top].sum()/tot.sum():.0%} of FY2015-FY2025 releases. "
      f"{top[0]}'s share ranged from {share[top[0]].min():.1%} to {share[top[0]].max():.1%}; year-to-year state rank "
-     f"correlations (Week 3) never fell below {pers[rho_col].min():.2f}.")
+     f"correlations never fell below {rho.min():.3f} (FY{rho.idxmin() - 1} to FY{rho.idxmin()}).")
 findings.append(f); print(f)"""),
 
     md("## 3. A small set of counties receives the most children every year"),
@@ -124,7 +143,8 @@ ax.set_yticks(range(len(heat.index)), heat.index, fontsize=8); ax.grid(False)
 for (i, j), v in pd.DataFrame(heat.values).stack().items():
     ax.text(j, i, f"{v/1000:.1f}k" if v >= 1000 else f"{v:.0f}", ha="center", va="center", fontsize=6.5,
             color="white" if v > heat.values[~pd.isna(heat.values)].max() * 0.55 else "#333")
-fig.colorbar(im, ax=ax, fraction=0.03, pad=0.02, label="Releases")
+fig.colorbar(im, ax=ax, fraction=0.03, pad=0.02, label="Children released")
+ax.set_title("Children released to sponsors; blank = under 50 that year, so not published", fontsize=9, loc="left")
 save(fig, "top20_counties")
 leader = counties.loc[counties.groupby("fiscal_year")["releases"].idxmax(), ["fiscal_year", "county_name"]]  # the county with the most releases in each year
 always = int(heat.notna().all(axis=1).sum())  # counties listed in every year
@@ -133,7 +153,7 @@ f = (f"The 20 largest receiving counties took {top20.releases.sum()/nat.sum():.0
      f"of {len(FY)} years, and {always} of the 20 were listed (50+ releases) in every year.")
 findings.append(f); print(f)"""),
 
-    md("## 4. In surge years more counties cross the 50-release threshold"),
+    md("## 4. In higher-volume years more counties cross the 50-release threshold"),
     # Named aggregation: .agg(new_name=(column, function)) computes several summaries per group in one step.
     code("""listed = counties.groupby("fiscal_year").agg(listed_releases=("releases", "sum"), listed_counties=("county_key", "nunique"))
 listed["other_releases"] = other.groupby("fiscal_year")["releases"].sum()
@@ -162,8 +182,8 @@ st_tot = states.groupby("state").agg(releases=("releases", "sum"), pop_5_17=("po
 st_tot["per_1000_school_age"] = 1000 * st_tot.releases / st_tot.pop_5_17  # releases relative to school-age population: a service-planning rate (schools)
 m = lower48(st_shp).merge(st_tot, left_on="STUSPS", right_on="state", how="left")  # join map shapes to the numbers by state code; how='left' keeps every state on the map
 fig, axes = plt.subplots(1, 2, figsize=(9, 3.4))
-for ax, col, title in ((axes[0], "releases", "Releases FY2015-FY2025"),
-                       (axes[1], "per_1000_school_age", "Per 1,000 school-age children (2024)")):
+for ax, col, title in ((axes[0], "releases", "Children released, FY2015-FY2025 total"),
+                       (axes[1], "per_1000_school_age", "Per 1,000 children ages 5-17 (2024 population)")):
     m.plot(column=col, cmap="Blues", linewidth=0.3, edgecolor="white", ax=ax, legend=True,
            legend_kwds={"shrink": 0.6, "format": mtick.FuncFormatter(lambda v, _: f"{v:,.0f}")})
     ax.set_title(title, fontsize=9, loc="left"); ax.set_axis_off()
@@ -185,10 +205,58 @@ st_rank = st_tot.sort_values("per_1000_school_age", ascending=False)
 f = (f"Per school-age child, the highest totals were in {', '.join(st_rank.state.head(3))} "
      f"({st_rank.per_1000_school_age.head(1).iloc[0]:.0f} per 1,000), the lowest in {', '.join(st_rank.state.tail(3))}. "
      f"{counties.county_key.nunique()} counties were listed at least once; {(cm.releases.notna()).sum()} appear on the "
-     f"county map ({(counties.county_fips.isna() | (counties.county_fips == '<NA>')).groupby(counties.county_key).any().sum()} "
+     f"county map ({counties.county_fips.isna().groupby(counties.county_key).any().sum()} "
      f"Connecticut counties have no FIPS match because the 2023 boundaries use planning regions; Alaska, Hawaii and "
      f"Puerto Rico are left off the maps).")
 findings.append(f); print(f)"""),
+
+    md("""### The same maps for every fiscal year
+
+One panel per year on a shared color scale, so the FY2021-FY2024 rise and the FY2025 fall can be compared
+place by place (BRD FR-06). County panels shade only published counts (50+ releases)."""),
+    code("""from matplotlib.colors import LinearSegmentedColormap
+# Blues without its near-white end, so the smallest shaded place still stands out from the grey.
+blues = LinearSegmentedColormap.from_list("blues", plt.get_cmap("Blues")(range(70, 256)))
+st48, co48 = lower48(st_shp), lower48(co_shp)
+
+def year_panels(title, norm, label):  # 3 x 4 grid: eleven years, and the color bar in the twelfth cell
+    fig, axes = plt.subplots(3, 4, figsize=(13, 7.6))
+    for ax in axes.flat:
+        ax.set_axis_off(); ax.grid(False)
+    fig.suptitle(title, x=0.01, ha="left", fontsize=11)
+    fig.text(0.01, 0.01, "Contiguous U.S.; Alaska, Hawaii, Puerto Rico and the Virgin Islands are not drawn. "
+             "Connecticut's listed counties have no current Census shape.", fontsize=7, color="#6b6b68")
+    bar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=blues), cax=fig.add_axes([0.80, 0.16, 0.012, 0.18]))
+    bar.set_label(label, fontsize=8); bar.ax.tick_params(labelsize=7)
+    bar.ax.yaxis.set_major_formatter(mtick.FuncFormatter(lambda v, _: f"{v:,.0f}"))
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.92, bottom=0.04, wspace=0.02, hspace=0.12)
+    return fig, axes.flat
+
+by_state = states.pivot(index="state", columns="fiscal_year", values="releases")
+norm = LogNorm(vmin=10, vmax=by_state.max().max())
+fig, axes = year_panels("Children released to sponsors by state, each fiscal year (shared log scale)", norm,
+                        "Children released\\n(grey: none; under 10 drawn as 10)")
+for ax, fy in zip(axes, FY):
+    g = st48.assign(releases=st48.STUSPS.map(by_state[fy]))
+    g.plot(color="#e4e4e1", linewidth=0.3, edgecolor="white", ax=ax)
+    shaded = g[g.releases > 0]
+    shaded.plot(column=shaded.releases.clip(lower=10), cmap=blues, norm=norm, linewidth=0.3, edgecolor="white", ax=ax)
+    ax.set_title(f"FY{fy}: {nat[fy]:,} nationally", fontsize=9, loc="left")
+save(fig, "state_maps_by_year", tight=False)
+
+# Connecticut's 4 listed counties have no FIPS match, so they cannot be drawn.
+by_county = counties[counties.county_fips.notna()].pivot(index="county_fips", columns="fiscal_year", values="releases")
+norm = LogNorm(vmin=50, vmax=by_county.max().max())
+fig, axes = year_panels("Listed counties (50+ children released to sponsors), each fiscal year (shared log scale)",
+                        norm, "Children released\\n(grey: under 50, not published)")
+for ax, fy in zip(axes, FY):
+    g = co48.assign(releases=co48.GEOID.map(by_county[fy]))
+    g.plot(color="#e4e4e1", linewidth=0, ax=ax)
+    shown = g[g.releases.notna()]  # a county is shaded only in years it was published
+    shown.plot(column="releases", cmap=blues, norm=norm, linewidth=0, ax=ax)
+    st48.boundary.plot(ax=ax, color="#9a9a96", linewidth=0.2)
+    ax.set_title(f"FY{fy}: {len(shown)} counties shown", fontsize=9, loc="left")
+save(fig, "county_maps_by_year", tight=False)"""),
 
     md("## Summary of findings"),
     code("""for i, f in enumerate(findings, 1):
