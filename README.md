@@ -301,7 +301,8 @@ Weeks 1–4 and Week 7 was written with AI assistance (Claude, by Anthropic): da
 maps, the app and the tests. Those commits carry a `Co-Authored-By: Claude` line. The project owner writes the
 Week 5 share model, the Week 6 scenario engine and the written summary. AI assistance on those parts is limited
 to the spec and acceptance tests ([`docs/spec_week5_week6.md`](docs/spec_week5_week6.md),
-`tests/test_acceptance.py`) and code review.
+`tests/test_acceptance.py`), step-by-step guidance (what each step is for, the choices it involves, and how to
+check it, without code), and code review.
 
 ## Exchange with adjacent projects
 

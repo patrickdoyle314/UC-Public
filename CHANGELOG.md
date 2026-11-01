@@ -8,6 +8,7 @@ dates are when the change was made.
 ### Changed
 - README Week 3 results: what the Lorenz curves show, and why county curves (listed counties only) should be
   compared across years with care. In FY2020 and FY2025 only 73 and 109 counties were listed.
+- README "How this was built": AI assistance on Weeks 5–6 now also includes step-by-step guidance without code.
 
 ## [0.6.2] - 2026-10-31 (Week 3 review)
 
