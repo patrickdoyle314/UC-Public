@@ -9,6 +9,9 @@ dates are when the change was made.
 - README Week 3 results: what the Lorenz curves show, and why county curves (listed counties only) should be
   compared across years with care. In FY2020 and FY2025 only 73 and 109 counties were listed.
 - README "How this was built": AI assistance on Weeks 5–6 now also includes step-by-step guidance without code.
+- Commit messages no longer carry a `Co-Authored-By: Claude` line, so the history was rewritten (every commit
+  hash changed; files, authors and dates did not). The README's "How this was built" section is now the record
+  of which parts were AI-assisted.
 
 ## [0.6.2] - 2026-10-31 (Week 3 review)
 
